@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="4a7350de-d956-4ef9-919e-b19cab80996e" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="addingintegers-alekhyaFlow" doc:id="160f1040-57d5-4a89-8acf-babd01e29a3d" >
+		<http:listener doc:name="addition" doc:id="527e0b4c-abea-4ecf-a532-8817a692dd2d" config-ref="HTTP_Listener_config" path="/addingint"/>
+		<set-variable value="#[uuid()]" doc:name="Set Variable" doc:id="8e3c3a1a-d96b-4874-a1fc-cf25765033d5" variableName="CorrelationId"/>
+		<choice doc:name="Choice" doc:id="eb9c9da0-750b-45a2-84a4-bc1dc7e144ac" >
+			<when expression="#[((!isBlank(payload.number1)) and (!isBlank(payload.number2)))]">
+				<ee:transform doc:name="Transform Message" doc:id="7520c289-1e77-42e1-9ce2-b1862f0c6181">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"addition result" : payload.number1 + payload.number2
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="d107c168-f429-4295-8485-5721403275bf" message="Recieved payload - #[payload] -- #[vars.CorrelationId]"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="97764584-2ee2-4dfd-b46c-9c7aa7ea31f5" message="Input is not in correct format"/>
+				<set-payload value="Input is not in correct format" doc:name="Set Payload" doc:id="a2ad66f2-eaa8-4bdf-ab3e-a2f324dfaea6" />
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
